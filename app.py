@@ -4,26 +4,29 @@ import os
 
 app = Flask(__name__)
 
-# ✅ Load token from environment variable
+# Load Telegram token from environment variable
 TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
     raise ValueError("No BOT_TOKEN found in environment variables")
 
 URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
+# Root route for testing in browser
 @app.route("/")
 def home():
     return "Flask Telegram Bot is running ✅"
 
+# Telegram webhook route
 @app.route("/webhook", methods=["POST"])
 def telegram_bot():
     data = request.json
     if not data or "message" not in data:
         return "ok"
 
-    message = data["message"]["text"].lower()
     chat_id = data["message"]["chat"]["id"]
+    message = data["message"]["text"].lower()
 
+    # Simple rule-based responses
     if "hello" in message:
         reply = "Hello! How can I help you?"
     elif "price" in message:
@@ -33,9 +36,7 @@ def telegram_bot():
     else:
         reply = "Sorry, I did not understand."
 
+    # Send reply to Telegram
     requests.post(URL, json={"chat_id": chat_id, "text": reply})
-    return "ok"
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Railway gives PORT dynamically
-    app.run(host="0.0.0.0", port=port)       # Bind to all IPs
+    return "ok"
